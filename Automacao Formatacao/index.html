@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Central de Rotinas de TI</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="theme-dark">
+
+    <!-- LOGIN -->
+    <section class="login-screen" id="loginScreen" aria-label="Login administrativo">
+      <form class="login-card" id="loginForm">
+        <p class="eyebrow">Acesso administrativo</p>
+        <h1>Central de Rotinas de TI</h1>
+        <p class="login-copy">Entre para registrar formatações, consultar o histórico e exportar relatórios.</p>
+        <label>
+          Usuário
+          <input name="username" autocomplete="off" placeholder="Digite o usuário">
+        </label>
+        <label class="password-label">
+          Senha
+          <span class="password-wrap">
+            <input name="password" id="adminPassword" type="password" autocomplete="off" placeholder="Digite a senha">
+            <button class="password-toggle" id="passwordToggle" type="button" aria-label="Mostrar senha">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </span>
+        </label>
+        <p class="login-error" id="loginError" role="alert"></p>
+        <button class="primary" id="loginButton" type="submit">Entrar</button>
+        <button class="secondary retry-button" id="retryLogin" type="button" hidden>Tentar novamente</button>
+      </form>
+    </section>
+
+    <!-- APP -->
+    <div class="app-shell" id="appShell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Central de TI</p>
+          <h1>Central de Rotinas</h1>
+          <p class="subtitle">Processos internos, checklists e consultas operacionais do setor.</p>
+        </div>
+        <div class="top-actions">
+          <button class="ghost" id="themeToggle" type="button">Modo claro</button>
+          <button class="ghost" id="exportSheet" type="button">Exportar planilha</button>
+          <button class="ghost danger" id="logoutButton" type="button">Sair</button>
+        </div>
+      </header>
+
+      <main>
+        <!-- TELA: HOME -->
+        <section class="module-home" id="moduleHome" aria-label="Rotinas disponíveis">
+          <div class="module-heading">
+            <p class="eyebrow">Rotinas</p>
+            <h2>Selecione uma rotina</h2>
+            <p>Escolha qual processo deseja consultar ou executar.</p>
+          </div>
+          <div class="module-grid">
+            <button class="module-card" id="openAccessModule" type="button">
+              <span>Acessos</span>
+              <strong>Cadastro, consulta, senhas, licenças e remoção de acessos por usuário.</strong>
+            </button>
+            <button class="module-card" id="openFormattingModule" type="button">
+              <span>Formatações</span>
+              <strong>Checklist, histórico, filtros e BI de computadores formatados.</strong>
+            </button>
+          </div>
+        </section>
+
+        <!-- MÓDULO FORMATAÇÕES -->
+        <section class="formatting-module" id="formattingModule" hidden>
+          <div class="module-toolbar">
+            <button class="secondary" id="backToModules" type="button">Voltar</button>
+            <div>
+              <p class="eyebrow">Rotina</p>
+              <h2>Formatações</h2>
+            </div>
+          </div>
+
+          <!-- TELA: BI -->
+          <section class="bi-view" id="biView" hidden aria-label="BI de formatações">
+            <div class="workspace bi-workspace">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">Indicadores</p>
+                  <h2>Business Intelligence</h2>
+                </div>
+                <div class="bi-actions">
+                  <button class="secondary" id="openHistoryModal" type="button">Histórico</button>
+                  <button class="primary"   id="biNewFormatting"  type="button">Nova formatação</button>
+                  <button class="secondary" id="goToConsulta"     type="button">Consultar formatações</button>
+                </div>
+              </div>
+
+              <div class="metrics">
+                <div><strong id="totalJobs">0</strong><span>Total</span></div>
+                <div><strong id="monthJobs">0</strong><span>No mês</span></div>
+                <div><strong id="doneJobs">0</strong><span>Concluídas</span></div>
+                <div><strong id="resvJobs">0</strong><span>Em reserva</span></div>
+                <div><strong id="avgProgress">0%</strong><span>Média de progresso</span></div>
+              </div>
+
+              <div class="chart-area">
+                <p class="eyebrow" style="margin-bottom:12px">Formatações por mês</p>
+                <div class="bar-chart" id="barChart"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TELA: CONSULTA -->
+          <section class="formatting-list-view" id="formattingListView" hidden aria-label="Consulta de formatações">
+            <div class="workspace">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">Consulta</p>
+                  <h2>Histórico de formatações</h2>
+                </div>
+                <div class="bi-actions">
+                  <button class="secondary" id="backToBi"             type="button">← BI</button>
+                  <button class="primary"   id="newFormattingFromList" type="button">Nova formatação</button>
+                </div>
+              </div>
+              <div class="filters">
+                <label>
+                  Buscar
+                  <input id="formatSearch" autocomplete="off" placeholder="Nome, setor, máquina, técnico, sistema...">
+                </label>
+                <label>
+                  Status
+                  <select id="statusFilter">
+                    <option value="">Todos</option>
+                    <option value="done">Concluídas</option>
+                    <option value="reserva">Em reserva</option>
+                    <option value="open">Em andamento</option>
+                  </select>
+                </label>
+                <label>
+                  SAP
+                  <select id="sapFilter">
+                    <option value="">Todos</option>
+                    <option>Sim</option>
+                    <option>Não</option>
+                  </select>
+                </label>
+              </div>
+              <div class="filtered-summary" id="filteredSummary"></div>
+              <div class="history list-results" id="formatResults"></div>
+            </div>
+          </section>
+
+          <!-- TELA: REGISTRO -->
+          <section class="formatting-form-view" id="formattingFormView" hidden aria-label="Registro de formatação">
+            <div class="workspace">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">Registro</p>
+                  <h2 id="formTitle">Nova formatação</h2>
+                </div>
+                <div class="bi-actions">
+                  <button class="secondary" id="backToFormattingList" type="button">← Consulta</button>
+                  <span id="progressText">0% concluído</span>
+                </div>
+              </div>
+
+              <form id="formatForm">
+                <input type="hidden" name="id"        id="jobId">
+                <input type="hidden" name="createdAt" id="jobCreatedAt">
+
+                <div class="grid two">
+                  <label>
+                    Colaborador
+                    <input name="collaborator" autocomplete="off" placeholder="Nome do usuário">
+                  </label>
+                  <label>
+                    Setor
+                    <input name="department" autocomplete="off" placeholder="Ex: Comercial">
+                  </label>
+                  <label>
+                    Técnico responsável
+                    <input name="technician" autocomplete="off" placeholder="Quem realizou">
+                  </label>
+                  <label>
+                    Necessita SAP?
+                    <select name="needsSap" id="needsSap">
+                      <option value="">Selecionar</option>
+                      <option>Sim</option>
+                      <option>Não</option>
+                    </select>
+                  </label>
+                </div>
+
+                <!-- Destino -->
+                <div class="destino-block">
+                  <div class="block-heading">
+                    <p class="eyebrow">Destino</p>
+                    <h3>Para onde vai este computador?</h3>
+                  </div>
+                  <label>
+                    Destino após formatação
+                    <select name="destino" id="destinoSelect">
+                      <option value="">Selecionar</option>
+                      <option value="colaborador">Usuário ativo</option>
+                      <option value="reserva">Reserva</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="naming">
+                  <div class="block-heading">
+                    <p class="eyebrow">Domínio e AD</p>
+                    <h3>Nome do computador</h3>
+                  </div>
+                  <div class="grid three">
+                    <label>
+                      Padrão do AD
+                      <input name="adPattern" id="adPattern" autocomplete="off" placeholder="ADM-COM">
+                    </label>
+                    <label>
+                      Último número encontrado
+                      <input name="lastAdNumber" id="lastAdNumber" type="number" min="0" placeholder="4">
+                    </label>
+                    <label>
+                      Novo nome sugerido
+                      <input name="newComputerName" id="newComputerName" autocomplete="off" placeholder="ADM-COM-05">
+                    </label>
+                  </div>
+                </div>
+
+                <div class="grid three">
+                  <label>
+                    Nome antigo no domínio
+                    <input name="currentComputerName" autocomplete="off" placeholder="Nome antes da formatação">
+                  </label>
+                  <label>
+                    Sistema operacional
+                    <select name="os">
+                      <option value="">Selecionar</option>
+                      <option>Windows 10</option>
+                      <option>Windows 11</option>
+                    </select>
+                  </label>
+                  <label>
+                    Chave Windows
+                    <input name="windowsKey" autocomplete="off" placeholder="Informada ou localizada">
+                  </label>
+                </div>
+
+                <div class="checklist" id="checklist"></div>
+
+                <label>
+                  Observações
+                  <textarea name="notes" rows="4" placeholder="Pendências, exceções, detalhes do equipamento ou usuário"></textarea>
+                </label>
+
+                <div class="actions">
+                  <button class="primary"   type="submit"  id="saveButton">Salvar formatação</button>
+                  <button class="secondary" type="button"  id="clearForm">Limpar</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+        </section><!-- /formattingModule -->
+        <section class="access-module" id="accessModule" hidden>
+          <div class="module-toolbar">
+            <button class="secondary" id="backToModulesFromAccess" type="button">Voltar</button>
+            <div>
+              <p class="eyebrow">Rotina</p>
+              <h2>Acessos</h2>
+            </div>
+          </div>
+
+          <section class="access-grid">
+            <div class="workspace">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">Cadastro</p>
+                  <h2 id="accessFormTitle">Novo controle de acesso</h2>
+                </div>
+                <button class="secondary" id="newAccessRecord" type="button">Novo</button>
+              </div>
+
+              <form id="accessForm">
+                <input type="hidden" name="id" id="accessId">
+
+                <div class="grid three">
+                  <label>Colaborador / Usuário<input name="employee" autocomplete="off" placeholder="Nome do colaborador"></label>
+                  <label>Setor<input name="sector" autocomplete="off" placeholder="Ex: Comercial"></label>
+                  <label>Situação<select name="situation"><option value="">Selecionar</option><option>Usuário novo</option><option>Usuário antigo</option><option>Colaborador ativo</option><option>Férias</option><option>Realocação</option><option>Desligado</option></select></label>
+                </div>
+
+                <div class="access-sections">
+                  <section class="access-block"><h3>Active Directory (AD)</h3><div class="grid two">
+                    <label>Nome definido<input name="adName" autocomplete="off"></label>
+                    <label>Status AD<select name="adStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
+                    <label>Pastas de rede<input name="networkFolders" autocomplete="off" placeholder="Pastas adicionadas/removidas"></label>
+                    <label>Senha AD<span class="password-wrap"><input name="adPassword" type="password" autocomplete="off" placeholder="Nova/redefinida"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+                    <label>Habilitar usuário<select name="adEnabled"><option>Sim</option><option>Não</option><option>Não se aplica</option></select></label>
+                    <label>Renomear usuário<input name="adRename" autocomplete="off"></label>
+                    <label>Setor no AD<input name="adSector" autocomplete="off"></label>
+                  </div></section>
+
+                  <section class="access-block"><h3>E-mail</h3><div class="grid two">
+                    <label>Novo e-mail<input name="newEmail" autocomplete="off" placeholder="usuario@empresa.com"></label>
+                    <label>Senha do e-mail<span class="password-wrap"><input name="emailPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+                    <label>Senha redefinida<input name="emailResetPassword" id="emailResetPassword" autocomplete="off" readonly placeholder="Use o botão Redefinir senha"></label>
+                    <label>Códigos de autenticação<input name="authCodes" id="authCodes" autocomplete="off" readonly placeholder="Use o botão Gerar código"></label>
+                    <label>Status e-mail<select name="emailStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
+                    <div class="inline-actions"><button class="secondary" id="openPasswordReset" type="button">Redefinir senha</button><button class="secondary" id="openAuthCodeModal" type="button">Gerar código</button></div>
+                  </div></section>
+
+                  <section class="access-block"><h3>Redirecionamento / Roteamento</h3><div class="grid two">
+                    <label>Ativar roteamento?<select name="routingEnabled" id="routingEnabled"><option>Não</option><option>Sim</option></select></label>
+                    <label>Status roteamento<select name="routingStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
+                  </div><div class="grid two conditional-block" data-conditional="routing">
+                    <label>E-mail do desligado<input name="formerEmail" autocomplete="off"></label>
+                    <label>Quem vai receber / alias<input name="aliasReceiver" autocomplete="off"></label>
+                    <label>Remetente original<input name="forwardFrom" autocomplete="off"></label>
+                    <label>Destinatário do encaminhamento<input name="forwardTo" autocomplete="off"></label>
+                  </div></section>
+
+                  <section class="access-block"><h3>Office</h3><div class="grid two">
+                    <label>E-mail da licença<input name="officeEmail" autocomplete="off"></label>
+                    <label>Senha<span class="password-wrap"><input name="officePassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+                    <label>Status Office<select name="officeStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
+                  </div></section>
+
+                  <section class="access-block"><h3>MicroSIP</h3><div class="grid two">
+                    <label>Usuário usa ramal?<select name="usesMicrosip" id="usesMicrosip"><option>Não</option><option>Sim</option></select></label>
+                    <label>Status MicroSIP<select name="microsipStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
+                  </div><div class="grid two conditional-block" data-conditional="microsip">
+                    <label>Número do ramal<input name="microsipExtension" autocomplete="off"></label>
+                    <label>Senha do ramal<span class="password-wrap"><input name="microsipPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+                  </div></section>
+
+                  <section class="access-block"><h3>SAP</h3><div class="grid two">
+                    <label>Usuário usa SAP?<select name="usesSapAccess" id="usesSapAccess"><option>Não</option><option>Sim</option></select></label>
+                    <label>Status SAP<select name="sapAccessStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
+                  </div><div class="grid two conditional-block" data-conditional="sapAccess">
+                    <label>Código do usuário<input name="sapCode" autocomplete="off"></label>
+                    <label>Licença do usuário<input name="sapLicense" autocomplete="off"></label>
+                    <label>Senha do usuário<span class="password-wrap"><input name="sapPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+                    <label>Alterar senha<span class="password-wrap"><input name="sapChangePassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+                  </div></section>
+
+                  <section class="access-block"><h3>Zap Responder</h3><div class="grid two">
+                    <label>Ativar Zap Responder?<select name="zapEnabled" id="zapEnabled"><option>Não</option><option>Sim</option></select></label>
+                    <label>Status Zap Responder<select name="zapStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
+                  </div><div class="grid two conditional-block" data-conditional="zap">
+                    <label>Login do usuário<input name="zapLogin" autocomplete="off"></label>
+                    <label>Senha<span class="password-wrap"><input name="zapPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+                  </div></section>
+                </div>
+
+                <label>Observações<textarea name="notes" rows="3" placeholder="Chamados, detalhes de permissão ou exceções"></textarea></label>
+
+                <div class="actions">
+                  <button class="primary" type="submit" id="saveAccessButton">Salvar acesso</button>
+                  <button class="secondary" type="button" id="clearAccessForm">Limpar</button>
+                </div>
+              </form>
+            </div>
+
+            <aside class="panel">
+              <div class="panel-title"><div><p class="eyebrow">Consulta</p><h2>Acessos por usuário</h2></div></div>
+              <div class="filters access-filters">
+                <label>Buscar<input id="accessSearch" autocomplete="off" placeholder="Usuário, setor, e-mail, ramal, SAP..."></label>
+                <label>Status<select id="accessStatusFilter"><option value="">Todos</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
+              </div>
+              <div class="filtered-summary" id="accessSummary"></div>
+              <div class="history access-results" id="accessResults"></div>
+            </aside>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <!-- MODAL HISTÓRICO -->
+    <div class="modal-overlay" id="historyModal" hidden>
+      <div class="modal-box">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Histórico completo</p>
+            <h2>Todas as formatações</h2>
+          </div>
+          <button class="ghost" id="closeHistoryModal" type="button">✕ Fechar</button>
+        </div>
+        <div class="modal-filters">
+          <label>
+            Buscar
+            <input id="modalSearch" autocomplete="off" placeholder="Nome, setor, máquina...">
+          </label>
+          <label>
+            Status
+            <select id="modalStatusFilter">
+              <option value="">Todos</option>
+              <option value="done">Concluídas</option>
+              <option value="reserva">Em reserva</option>
+              <option value="open">Em andamento</option>
+            </select>
+          </label>
+        </div>
+        <div class="modal-summary" id="modalSummary"></div>
+        <div class="history modal-list" id="modalHistoryList"></div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="passwordResetModal" hidden>
+      <div class="modal-box small-modal">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">E-mail</p>
+            <h2>Redefinir senha</h2>
+          </div>
+          <button class="ghost" id="closePasswordReset" type="button">Fechar</button>
+        </div>
+        <div class="modal-body">
+          <label>Nova senha<span class="password-wrap"><input id="newPasswordValue" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+          <label>Confirmar senha<span class="password-wrap"><input id="confirmPasswordValue" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+          <p class="login-error" id="passwordResetError"></p>
+          <button class="primary" id="applyPasswordReset" type="button">Aplicar redefinição</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="authCodeModal" hidden>
+      <div class="modal-box small-modal">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Autenticação</p>
+            <h2>Código de autenticação</h2>
+          </div>
+          <button class="ghost" id="closeAuthCodeModal" type="button">Fechar</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-note">Sem integração com o Google Admin Console, este botão gera um código interno para registro. Para gerar códigos oficiais do Google, será necessário integrar a API do Google Workspace com conta administradora.</p>
+          <label>Código gerado<input id="generatedAuthCode" autocomplete="off" readonly></label>
+          <div class="actions">
+            <button class="secondary" id="generateAuthCode" type="button">Gerar código</button>
+            <button class="primary" id="applyAuthCode" type="button">Usar no cadastro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
