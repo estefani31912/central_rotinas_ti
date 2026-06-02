@@ -386,7 +386,6 @@
                   <section class="access-block"><h3>Active Directory (AD)</h3><div class="grid two">
                     <label>Nome definido<input name="adName" autocomplete="off"></label>
                     <label>Status AD<select name="adStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
-                    <label>Pastas de rede<input name="networkFolders" autocomplete="off" placeholder="Pastas adicionadas/removidas"></label>
                     <label>Senha AD<span class="password-wrap"><input name="adPassword" type="password" autocomplete="off" placeholder="Nova/redefinida"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
                     <label>Habilitar usuário<select name="adEnabled"><option>Sim</option><option>Não</option><option>Não se aplica</option></select></label>
                     <label>Renomear usuário<span style="display:flex;gap:8px;align-items:center"><input name="adRename" autocomplete="off" readonly placeholder="Use o botão Renomear" style="flex:1"><button class="secondary" id="openRenameUser" type="button" style="flex-shrink:0;white-space:nowrap">Renomear</button></span></label>
@@ -433,7 +432,8 @@
                     <label>Código do usuário<input name="sapCode" autocomplete="off"></label>
                     <label>Licença do usuário<input name="sapLicense" autocomplete="off"></label>
                     <label>Senha do usuário<span class="password-wrap"><input name="sapPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
-                    <label>Alterar senha<span class="password-wrap"><input name="sapChangePassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+                    <label>Senha alterada<input name="sapChangePassword" id="sapChangePassword" autocomplete="off" readonly placeholder="Use o botão Alterar senha SAP"></label>
+                    <div class="inline-actions"><button class="secondary" id="openSapPasswordReset" type="button">Alterar senha SAP</button></div>
                   </div></section>
 
                   <section class="access-block"><h3>Responder</h3><div class="grid two">
@@ -553,6 +553,23 @@
         </div>
       </div>
     </div>
+    <div class="modal-overlay" id="sapPasswordResetModal" hidden>
+      <div class="modal-box small-modal">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">SAP</p>
+            <h2>Alterar senha SAP</h2>
+          </div>
+          <button class="ghost" id="closeSapPasswordReset" type="button">Fechar</button>
+        </div>
+        <div class="modal-body">
+          <label>Nova senha<span class="password-wrap"><input id="sapNewPasswordValue" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+          <label>Confirmar senha<span class="password-wrap"><input id="sapConfirmPasswordValue" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
+          <p class="login-error" id="sapPasswordResetError"></p>
+          <button class="primary" id="applySapPasswordReset" type="button">Aplicar senha SAP</button>
+        </div>
+      </div>
+    </div>
 
     <div class="modal-overlay" id="authCodeModal" hidden>
       <div class="modal-box small-modal">
@@ -564,8 +581,8 @@
           <button class="ghost" id="closeAuthCodeModal" type="button">Fechar</button>
         </div>
         <div class="modal-body">
-          <p class="modal-note">Sem integração com o Google Admin Console, este botão gera um código interno para registro. Para gerar códigos oficiais do Google, será necessário integrar a API do Google Workspace com conta administradora.</p>
-          <label>Código gerado<input id="generatedAuthCode" autocomplete="off" readonly></label>
+          <p class="modal-note">Sem integração com o Google Admin Console, este botão gera um código interno de 8 dígitos numéricos para registro. Para gerar códigos oficiais do Google, será necessário integrar a API do Google Workspace com conta administradora.</p>
+          <label>Código gerado<input id="generatedAuthCode" autocomplete="off" readonly placeholder="8 dígitos"></label>
           <div class="actions">
             <button class="secondary" id="generateAuthCode" type="button">Gerar código</button>
             <button class="primary" id="applyAuthCode" type="button">Usar no cadastro</button>

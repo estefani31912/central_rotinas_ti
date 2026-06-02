@@ -6,7 +6,7 @@ const os   = require("os");
 const root = __dirname;
 const port = 5173;
 
-// ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+// SUPABASE CONFIG
 const SUPABASE_URL     = "https://wuvjoezjvnlrnkhswtqm.supabase.co";
 const SUPABASE_KEY     = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1dmpvZXpqdm5scm5raHN3dHFtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTI1OTAxMywiZXhwIjoyMDk0ODM1MDEzfQ.yQBqC8wHIEmSKdSfZVse9dreGgZv9AmyY6AFMEUM2jc";
 const TABLE            = "historico_formatacoes";
@@ -23,7 +23,7 @@ const mime = {
   ".json": "application/json; charset=utf-8"
 };
 
-// ─── REFERÊNCIA DOS GRUPOS DO CHECKLIST ───────────────────────────────────────
+//  REFERENCIA DOS GRUPOS DO CHECKLIST
 const GRUPOS = [
   ["Verificar nome atual do computador no domínio","Localizar ou confirmar chave do Windows","Identificar sistema operacional instalado: Windows 10 ou Windows 11","Verificar no AD os nomes das máquinas do setor","Definir novo nome seguindo a sequência do setor","Confirmar se o colaborador usa SAP"],
   ["Baixar a ISO do mesmo sistema operacional identificado","Instalar a imagem do Windows no pendrive","Ejetar o pendrive com segurança","Desligar o computador que será formatado","Conectar o pendrive no computador"],
@@ -38,7 +38,7 @@ function filterGroup(checkedItems, groupIndex) {
   return checkedItems.filter((item) => ref.includes(item));
 }
 
-// ─── MAPEAMENTO JS → BANCO ────────────────────────────────────────────────────
+// MAPEAMENTO JS -> BANCO 
 function toRow(job) {
   const checked = job.checkedItems || [];
   return {
@@ -69,7 +69,7 @@ function toRow(job) {
   };
 }
 
-// ─── MAPEAMENTO BANCO → JS ────────────────────────────────────────────────────
+//  MAPEAMENTO BANCO -> JS 
 function fromRow(row) {
   const checkedItems = [
     ...(row.chk_levantamento          || []),
@@ -104,7 +104,7 @@ function fromRow(row) {
   };
 }
 
-// ─── HTTP HELPER (sem dependências externas) ──────────────────────────────────
+// HTTP HELPER (sem dependencias externas) 
 function supabaseFetch(urlPath, options = {}) {
   return new Promise((resolve, reject) => {
     const fullUrl = new URL(urlPath, SUPABASE_URL);
@@ -140,7 +140,7 @@ function supabaseFetch(urlPath, options = {}) {
   });
 }
 
-// ─── OPERAÇÕES SUPABASE ───────────────────────────────────────────────────────
+//  OPERACOES SUPABASE 
 async function getAllJobs() {
   const res = await supabaseFetch(
     `/rest/v1/${TABLE}?select=*&order=created_at.desc`,
@@ -166,7 +166,7 @@ async function upsertJobs(jobs) {
   return res.body;
 }
 
-// ─── SERVIDOR HTTP ────────────────────────────────────────────────────────────
+// SERVIDOR HTTP 
 function sendJson(res, status, body) {
   res.writeHead(status, { "Content-Type": mime[".json"], "Cache-Control": "no-store" });
   res.end(JSON.stringify(body));

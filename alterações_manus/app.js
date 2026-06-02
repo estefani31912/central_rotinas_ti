@@ -752,10 +752,14 @@ const accessSituationFilter = document.querySelector("#accessSituationFilter");
 const accessSummary     = document.querySelector("#accessSummary");
 const accessResults     = document.querySelector("#accessResults");
 const passwordResetModal    = document.querySelector("#passwordResetModal");
+const sapPasswordResetModal = document.querySelector("#sapPasswordResetModal");
 const authCodeModal         = document.querySelector("#authCodeModal");
 const passwordResetError    = document.querySelector("#passwordResetError");
+const sapPasswordResetError = document.querySelector("#sapPasswordResetError");
 const newPasswordValue      = document.querySelector("#newPasswordValue");
 const confirmPasswordValue  = document.querySelector("#confirmPasswordValue");
+const sapNewPasswordValue   = document.querySelector("#sapNewPasswordValue");
+const sapConfirmPasswordValue = document.querySelector("#sapConfirmPasswordValue");
 const generatedAuthCode     = document.querySelector("#generatedAuthCode");
 const situationSelect       = document.querySelector("#situationSelect");
 const accessSituationBadge  = document.querySelector("#accessSituationBadge");
@@ -921,10 +925,35 @@ function persistAccessRecords() {
   localStorage.setItem(accessStorageKey, JSON.stringify(accessCache));
 }
 
+function isAccessFieldVisible(field) {
+  if (field.disabled) return false;
+  const section = field.closest(".access-sections");
+  if (section && section.hidden) return false;
+  const conditional = field.closest(".conditional-block");
+  if (conditional && conditional.hidden) return false;
+  return true;
+}
+
+function collectVisibleAccessData() {
+  const data = {};
+  accessForm.querySelectorAll("[name]").forEach((field) => {
+    if (!field.name || !isAccessFieldVisible(field)) return;
+    if (field.type === "checkbox") {
+      data[field.name] = field.checked ? field.value : "Não";
+      return;
+    }
+    if (field.type === "radio") {
+      if (field.checked) data[field.name] = field.value;
+      return;
+    }
+    data[field.name] = field.value;
+  });
+  return data;
+}
+
 // ── Form data ─────────────────────────────────────────────────────────────────
 function accessDataObject() {
-  const formData = new FormData(accessForm);
-  const data = Object.fromEntries(formData.entries());
+  const data = collectVisibleAccessData();
   const now  = new Date().toISOString();
   const existing = accessCache.find((item) => item.id === data.id);
 
@@ -937,19 +966,24 @@ function accessDataObject() {
 
   const isDesligado = situation === "Desligado";
 
-  // Captura valores dos campos de desligado se necessário (IDs específicos)
   if (isDesligado) {
     data.routingEnabled = document.querySelector("#routingEnabledDes")?.value || "Não";
     data.usesMicrosip   = document.querySelector("#usesMicrosipDes")?.value || "Não";
     data.usesSapAccess  = document.querySelector("#usesSapAccessDes")?.value || "Não";
     data.zapEnabled     = document.querySelector("#zapEnabledDes")?.value || "Não";
+  } else {
+    data.routingEnabled = document.querySelector("#routingEnabled")?.value || "Não";
+    data.usesMicrosip   = document.querySelector("#usesMicrosip")?.value || "Não";
+    data.usesSapAccess  = document.querySelector("#usesSapAccess")?.value || "Não";
+    data.zapEnabled     = document.querySelector("#zapEnabled")?.value || "Não";
   }
 
-  // Sincronizar status se não estiverem ativos
-  if (data.routingEnabled !== "Sim") { data.routingStatus = "Não se aplica"; }
-  if (data.usesMicrosip   !== "Sim") { data.microsipStatus = "Não se aplica"; }
-  if (data.usesSapAccess  !== "Sim") { data.sapAccessStatus = "Não se aplica"; }
-  if (data.zapEnabled     !== "Sim") { data.zapStatus = "Não se aplica"; }
+  // Sincronizar status somente quando o usuário NÃO ativou o recurso.
+  // (Evita sobrescrever valores preenchidos.)
+  if (String(data.routingEnabled).trim() !== "Sim") { data.routingStatus = "Não se aplica"; }
+  if (String(data.usesMicrosip).trim()   !== "Sim") { data.microsipStatus = "Não se aplica"; }
+  if (String(data.usesSapAccess).trim()  !== "Sim") { data.sapAccessStatus = "Não se aplica"; }
+  if (String(data.zapEnabled).trim()     !== "Sim") { data.zapStatus = "Não se aplica"; }
 
   // Garante que o ID seja mantido ou gerado
   const finalId = data.id || (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
@@ -977,19 +1011,38 @@ function resetAccessForm() {
 
 function loadAccessRecord(record) {
   resetAccessForm();
-  Object.entries(record).forEach(([key, value]) => {
-    const field = accessForm.elements[key];
-    if (field && typeof value !== "object") field.value = value;
+  const situation = record.situation || "";
+  accessForm.elements.situation.value = situation;
+  applyAccessSituation(situation);
+
+  accessForm.querySelectorAll("[name]").forEach((field) => {
+    if (!field.name || !isAccessFieldVisible(field) || typeof record[field.name] === "undefined") return;
+    field.value = record[field.name];
   });
+
   // Retrocompatibilidade: detecta se tinha campos
-  if (!record.routingEnabled && (record.formerEmail || record.aliasReceiver)) accessForm.elements.routingEnabled.value = "Sim";
-  if (!record.usesMicrosip  && (record.microsipExtension))                    accessForm.elements.usesMicrosip.value  = "Sim";
-  if (!record.usesSapAccess && (record.sapCode || record.sapLicense))         accessForm.elements.usesSapAccess.value = "Sim";
-  if (!record.zapEnabled    && (record.zapLogin))                             accessForm.elements.zapEnabled.value    = "Sim";
+  const isDesligado = situation === "Desligado";
+
+  if (!record.routingEnabled && (record.formerEmail || record.aliasReceiver)) {
+    const field = document.querySelector(isDesligado ? "#routingEnabledDes" : "#routingEnabled");
+    if (field) field.value = "Sim";
+  }
+  if (!record.usesMicrosip  && (record.microsipExtension)) {
+    const field = document.querySelector(isDesligado ? "#usesMicrosipDes" : "#usesMicrosip");
+    if (field) field.value = "Sim";
+  }
+  if (!record.usesSapAccess && (record.sapCode || record.sapLicense)) {
+    const field = document.querySelector(isDesligado ? "#usesSapAccessDes" : "#usesSapAccess");
+    if (field) field.value = "Sim";
+  }
+  if (!record.zapEnabled    && (record.zapLogin)) {
+    const field = document.querySelector(isDesligado ? "#zapEnabledDes" : "#zapEnabled");
+    if (field) field.value = "Sim";
+  }
 
   accessFormTitle.textContent = "Editar controle de acesso";
   document.querySelector("#saveAccessButton").textContent = "Atualizar acesso";
-  applyAccessSituation(record.situation || "");
+  updateAccessConditionals();
   showAccessFormView();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1045,6 +1098,7 @@ function situationBadgeHtml(situation) {
 
 function renderAccessCard(record) {
   const displayEmail = record.newEmail || record.officeEmail || "não informado";
+  const usageSummary = `Roteamento: ${escapeHtml(record.routingEnabled || "Não")} | Ramal: ${escapeHtml(record.usesMicrosip || "Não")} | SAP: ${escapeHtml(record.usesSapAccess || "Não")} | Responder: ${escapeHtml(record.zapEnabled || "Não")}`;
   
   const tags = accessStatusFields
     .map(([label, field]) => {
@@ -1067,6 +1121,7 @@ function renderAccessCard(record) {
       ${situationBadgeHtml(record.situation)}
       <span>Setor: ${escapeHtml(record.sector || "não informado")}</span>
       <span>E-mail: ${escapeHtml(displayEmail)}</span>
+      <span>${escapeHtml(usageSummary)}</span>
       <span>Ramal: ${escapeHtml(record.microsipExtension || "—")} | SAP: ${escapeHtml(record.sapCode || "—")}</span>
       <div class="access-tags">${tags}</div>
       <div class="history-actions">
@@ -1081,10 +1136,15 @@ function renderAccessCard(record) {
 
 function renderAccessResults() {
   if (!accessResults) return;
-  const results = filteredAccessRecords();
-  
-  // Tela limpa se não houver busca nem filtros
-  if (results.length === 0 && !accessSearch.value && !accessSituationFilter.value && !accessStatusFilter.value) {
+
+  const hasAnyFilter = !!(
+    accessSearch.value.trim() ||
+    accessSituationFilter.value ||
+    accessStatusFilter.value
+  );
+
+  // Mostra “vazio” até o usuário buscar/filtrar (evita usuários aparecerem antes da pesquisa)
+  if (!hasAnyFilter) {
     accessSummary.textContent = "";
     accessResults.innerHTML = `<div style="text-align:center;padding:60px;color:var(--muted)">
       <p style="font-size:18px">Digite algo na busca ou selecione uma situação para ver os resultados.</p>
@@ -1092,11 +1152,13 @@ function renderAccessResults() {
     return;
   }
 
+  const results = filteredAccessRecords();
   accessSummary.textContent = `${results.length} usuário(s) encontrado(s)`;
   accessResults.innerHTML = results.length
     ? results.map(renderAccessCard).join("")
     : `<p class="empty">Nenhum acesso encontrado com esses filtros.</p>`;
 }
+
 
 // ── Ações dos cards ───────────────────────────────────────────────────────────
 function removeAllAccess(recordId) {
@@ -1184,12 +1246,30 @@ function applyPasswordReset() {
   closePasswordResetModal();
 }
 
+function openSapPasswordResetModal() {
+  sapPasswordResetError.textContent = "";
+  sapNewPasswordValue.value = "";
+  sapConfirmPasswordValue.value = "";
+  sapPasswordResetModal.hidden = false;
+}
+
+function closeSapPasswordResetModal() { sapPasswordResetModal.hidden = true; }
+
+function applySapPasswordReset() {
+  const newPassword     = sapNewPasswordValue.value.trim();
+  const confirmPassword = sapConfirmPasswordValue.value.trim();
+  if (!newPassword || !confirmPassword) { sapPasswordResetError.textContent = "Preencha e confirme a nova senha SAP."; return; }
+  if (newPassword !== confirmPassword)  { sapPasswordResetError.textContent = "As senhas não conferem."; return; }
+  accessForm.elements.sapChangePassword.value = newPassword;
+  closeSapPasswordResetModal();
+}
+
 function openAuthCodeModal()  { generatedAuthCode.value = ""; authCodeModal.hidden = false; }
 function closeAuthCodeModal() { authCodeModal.hidden = true; }
 
 function generateInternalAuthCode() {
-  const segments = Array.from({ length: 2 }, () => Math.random().toString(36).slice(2, 6).toUpperCase());
-  generatedAuthCode.value = `INT-${segments.join("-")}`;
+  const digits = Array.from({ length: 8 }, () => String(Math.floor(Math.random() * 10)));
+  generatedAuthCode.value = digits.join("");
 }
 
 // ── Modal de renomeação de usuário ────────────────────────────────────────────
@@ -1420,7 +1500,7 @@ document.querySelector("#usesMicrosipDes")?.addEventListener("change", updateAcc
 document.querySelector("#usesSapAccessDes")?.addEventListener("change", updateAccessConditionals);
 document.querySelector("#zapEnabledDes")?.addEventListener("change", updateAccessConditionals);
 
-accessForm?.addEventListener("click", (e) => {
+document.addEventListener("click", (e) => {
   const button = e.target.closest(".field-password-toggle");
   if (button) togglePasswordField(button);
 });
@@ -1459,6 +1539,9 @@ document.querySelector("#clearAccessForm").addEventListener("click",      resetA
 document.querySelector("#openPasswordReset").addEventListener("click",    openPasswordResetModal);
 document.querySelector("#closePasswordReset").addEventListener("click",   closePasswordResetModal);
 document.querySelector("#applyPasswordReset").addEventListener("click",   applyPasswordReset);
+document.querySelector("#openSapPasswordReset")?.addEventListener("click", openSapPasswordResetModal);
+document.querySelector("#closeSapPasswordReset")?.addEventListener("click", closeSapPasswordResetModal);
+document.querySelector("#applySapPasswordReset")?.addEventListener("click", applySapPasswordReset);
 document.querySelector("#openAuthCodeModal").addEventListener("click",    openAuthCodeModal);
 document.querySelector("#closeAuthCodeModal").addEventListener("click",   closeAuthCodeModal);
 document.querySelector("#generateAuthCode").addEventListener("click",     generateInternalAuthCode);
@@ -1473,6 +1556,7 @@ document.querySelector("#logoutButton").addEventListener("click",         logout
 
 historyModal.addEventListener("click", (e) => { if (e.target === historyModal) closeHistoryModal(); });
 passwordResetModal.addEventListener("click", (e) => { if (e.target === passwordResetModal) closePasswordResetModal(); });
+sapPasswordResetModal?.addEventListener("click", (e) => { if (e.target === sapPasswordResetModal) closeSapPasswordResetModal(); });
 authCodeModal.addEventListener("click", (e) => { if (e.target === authCodeModal) closeAuthCodeModal(); });
 renameUserModal?.addEventListener("click", (e) => { if (e.target === renameUserModal) closeRenameUserModal(); });
 
