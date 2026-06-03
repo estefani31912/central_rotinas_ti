@@ -13,7 +13,7 @@
       <form class="login-card" id="loginForm">
         <p class="eyebrow">Acesso administrativo</p>
         <h1>Central de Rotinas de TI</h1>
-        <p class="login-copy">Entre para registrar formatações, consultar o histórico e exportar relatórios.</p>
+        <p class="login-copy">Entre para registrar informações, consultar históricos e exportar relatórios.</p>
         <label>
           Usuário
           <input name="username" autocomplete="off" placeholder="Digite o usuário">
@@ -386,35 +386,47 @@
                   <section class="access-block"><h3>Active Directory (AD)</h3><div class="grid two">
                     <label>Nome definido<input name="adName" autocomplete="off"></label>
                     <label>Status AD<select name="adStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
-                    <label>Senha AD<span class="password-wrap"><input name="adPassword" type="password" autocomplete="off" placeholder="Nova/redefinida"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
                     <label>Habilitar usuário<select name="adEnabled"><option>Sim</option><option>Não</option><option>Não se aplica</option></select></label>
-                    <label>Renomear usuário<span style="display:flex;gap:8px;align-items:center"><input name="adRename" autocomplete="off" readonly placeholder="Use o botão Renomear" style="flex:1"><button class="secondary" id="openRenameUser" type="button" style="flex-shrink:0;white-space:nowrap">Renomear</button></span></label>
                     <label>Setor no AD<input name="adSector" autocomplete="off"></label>
                   </div></section>
 
                   <section class="access-block"><h3>E-mail</h3><div class="grid two">
                     <label>Novo e-mail<input name="newEmail" autocomplete="off" placeholder="usuario@empresa.com"></label>
-                    <label>Senha do e-mail<span class="password-wrap"><input name="emailPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
-                    <label>Senha redefinida<input name="emailResetPassword" id="emailResetPassword" autocomplete="off" readonly placeholder="Use o botão Redefinir senha"></label>
-                    <label>Códigos de autenticação<input name="authCodes" id="authCodes" autocomplete="off" readonly placeholder="Use o botão Gerar código"></label>
                     <label>Status e-mail<select name="emailStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
-                    <div class="inline-actions"><button class="secondary" id="openPasswordReset" type="button">Redefinir senha</button><button class="secondary" id="openAuthCodeModal" type="button">Gerar código</button></div>
+                    <label>Alias do e-mail
+                      <div class="alias-list" id="aliasInputs">
+                        <div class="alias-row"><input name="aliasReceiver[]" autocomplete="off" placeholder="alias@empresa.com"><button class="secondary alias-remove" type="button" aria-label="Remover alias">✕</button></div>
+                      </div>
+                      <button class="secondary" id="addAliasButton" type="button">+ Adicionar alias</button>
+                    </label>
+                    <label>Observações<textarea name="emailObservations" rows="2" placeholder="Observações sobre e-mail..."></textarea></label>
                   </div></section>
 
                   <section class="access-block"><h3>Redirecionamento / Roteamento</h3><div class="grid two">
                     <label>Ativar roteamento?<select name="routingEnabled" id="routingEnabled"><option>Não</option><option>Sim</option></select></label>
                     <label>Status roteamento<select name="routingStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
                   </div><div class="grid two conditional-block" data-conditional="routing">
-                    <label>E-mail do desligado<input name="formerEmail" autocomplete="off"></label>
-                    <label>Quem vai receber / alias<input name="aliasReceiver" autocomplete="off"></label>
+                    <label>E-mail do colaborador<input name="formerEmail" autocomplete="off"></label>
                     <label>Remetente original<input name="forwardFrom" autocomplete="off"></label>
                     <label>Destinatário do encaminhamento<input name="forwardTo" autocomplete="off"></label>
                   </div></section>
 
                   <section class="access-block"><h3>Office</h3><div class="grid two">
                     <label>E-mail da licença<input name="officeEmail" autocomplete="off"></label>
-                    <label>Senha<span class="password-wrap"><input name="officePassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
                     <label>Status Office<select name="officeStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
+                  </div></section>
+
+                  <section class="access-block"><h3>Magma / Cylance</h3><div class="grid two">
+                    <label>Status Magma<select name="magmaStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
+                    <label>Status Cylance<select name="cylanceStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
+                  </div>
+                  <div class="grid two">
+                    <label>Houve verificação da Magma?<div><button class="check-button" id="magmaChecked" type="button" aria-pressed="false">☐ Verificado</button><input type="hidden" name="magmaChecked" value="Não"></div></label>
+                    <label>Houve verificação da Cylance?<div><button class="check-button" id="cylanceChecked" type="button" aria-pressed="false">☐ Verificado</button><input type="hidden" name="cylanceChecked" value="Não"></div></label>
+                  </div>
+                  <div class="grid two">
+                    <label>Observações Magma<textarea name="magmaObservations" rows="2" placeholder="Observações sobre Magma..."></textarea></label>
+                    <label>Observações Cylance<textarea name="cylanceObservations" rows="2" placeholder="Observações sobre Cylance..."></textarea></label>
                   </div></section>
 
                   <section class="access-block"><h3>MicroSIP</h3><div class="grid two">
@@ -422,7 +434,6 @@
                     <label>Status MicroSIP<select name="microsipStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
                   </div><div class="grid two conditional-block" data-conditional="microsip">
                     <label>Número do ramal<input name="microsipExtension" autocomplete="off"></label>
-                    <label>Senha do ramal<span class="password-wrap"><input name="microsipPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
                   </div></section>
 
                   <section class="access-block"><h3>SAP</h3><div class="grid two">
@@ -431,9 +442,9 @@
                   </div><div class="grid two conditional-block" data-conditional="sapAccess">
                     <label>Código do usuário<input name="sapCode" autocomplete="off"></label>
                     <label>Licença do usuário<input name="sapLicense" autocomplete="off"></label>
-                    <label>Senha do usuário<span class="password-wrap"><input name="sapPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
-                    <label>Senha alterada<input name="sapChangePassword" id="sapChangePassword" autocomplete="off" readonly placeholder="Use o botão Alterar senha SAP"></label>
-                    <div class="inline-actions"><button class="secondary" id="openSapPasswordReset" type="button">Alterar senha SAP</button></div>
+                    <label>Status CRM<select name="crmStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
+                    <label>Houve verificação da licença do CRM no SAP?<div><button class="check-button" id="crmChecked" type="button" aria-pressed="false">☐ Verificado</button><input type="hidden" name="crmChecked" value="Não"></div></label>
+                    <label>Observações CRM<textarea name="crmObservations" rows="2" placeholder="Observações sobre CRM..."></textarea></label>
                   </div></section>
 
                   <section class="access-block"><h3>Responder</h3><div class="grid two">
@@ -441,7 +452,6 @@
                     <label>Status Responder<select name="zapStatus"><option>Não se aplica</option><option>Ativo</option><option>Pendente</option><option>Removido</option></select></label>
                   </div><div class="grid two conditional-block" data-conditional="zap">
                     <label>Login do usuário<input name="zapLogin" autocomplete="off"></label>
-                    <label>Senha<span class="password-wrap"><input name="zapPassword" type="password" autocomplete="off"><button class="password-toggle field-password-toggle" type="button" aria-label="Mostrar senha">👁</button></span></label>
                   </div></section>
                 </div>
 

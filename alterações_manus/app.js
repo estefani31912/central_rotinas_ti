@@ -946,9 +946,81 @@ function collectVisibleAccessData() {
       if (field.checked) data[field.name] = field.value;
       return;
     }
-    data[field.name] = field.value;
+
+    const rawName = field.name.endsWith("[]") ? field.name.slice(0, -2) : field.name;
+    const value = field.value.trim();
+
+    if (field.name.endsWith("[]")) {
+      if (!data[rawName]) data[rawName] = [];
+      if (value) data[rawName].push(value);
+      return;
+    }
+
+    if (data[rawName] !== undefined) {
+      if (!Array.isArray(data[rawName])) {
+        data[rawName] = [data[rawName]];
+      }
+      data[rawName].push(value);
+      return;
+    }
+
+    data[rawName] = value;
   });
   return data;
+}
+
+function createAliasRow(value = "") {
+  const wrapper = document.createElement("div");
+  wrapper.className = "alias-row";
+  wrapper.innerHTML = `
+    <input name="aliasReceiver[]" autocomplete="off" placeholder="alias@empresa.com" value="${escapeHtml(value)}">
+    <button class="secondary alias-remove" type="button" aria-label="Remover alias">✕</button>
+  `;
+  return wrapper;
+}
+
+function renderAliasFields(values = [""]) {
+  const container = document.querySelector("#aliasInputs");
+  if (!container) return;
+  container.innerHTML = "";
+  const aliasValues = Array.isArray(values) ? values : [values];
+  const sanitized = aliasValues.filter((value) => value !== undefined && value !== null && String(value).trim() !== "");
+  if (!sanitized.length) sanitized.push("");
+  sanitized.forEach((value) => {
+    container.appendChild(createAliasRow(value));
+  });
+}
+
+function getAliasValues() {
+  return Array.from(document.querySelectorAll("input[name='aliasReceiver[]']")).map((input) => input.value.trim()).filter(Boolean);
+}
+
+function addAliasField() {
+  const container = document.querySelector("#aliasInputs");
+  if (!container) return;
+  container.appendChild(createAliasRow(""));
+}
+
+function removeAliasField(button) {
+  const row = button.closest(".alias-row");
+  const container = document.querySelector("#aliasInputs");
+  if (!row || !container) return;
+  if (container.querySelectorAll(".alias-row").length <= 1) {
+    row.querySelector("input").value = "";
+    return;
+  }
+  row.remove();
+}
+
+function toggleChecklist(button, fieldName) {
+  if (!button) return;
+  const pressed = button.getAttribute("aria-pressed") === "true";
+  const newState = !pressed;
+  button.setAttribute("aria-pressed", newState ? "true" : "false");
+  button.textContent = newState ? "☑ Verificado" : "☐ Verificado";
+  if (accessForm && accessForm.elements[fieldName]) {
+    accessForm.elements[fieldName].value = newState ? "Sim" : "Não";
+  }
 }
 
 // ── Form data ─────────────────────────────────────────────────────────────────
@@ -1006,6 +1078,7 @@ function resetAccessForm() {
   situationNotice.hidden = true;
   accessSectionsNormal.hidden    = false;
   accessSectionsDesligado.hidden = true;
+  renderAliasFields([""]);
   updateAccessConditionals();
 }
 
@@ -1015,9 +1088,18 @@ function loadAccessRecord(record) {
   accessForm.elements.situation.value = situation;
   applyAccessSituation(situation);
 
+  const aliasValues = record.aliasReceiver
+    ? Array.isArray(record.aliasReceiver)
+      ? record.aliasReceiver
+      : [record.aliasReceiver]
+    : [];
+  renderAliasFields(aliasValues.length ? aliasValues : [""]);
+
   accessForm.querySelectorAll("[name]").forEach((field) => {
-    if (!field.name || !isAccessFieldVisible(field) || typeof record[field.name] === "undefined") return;
-    field.value = record[field.name];
+    if (!field.name || !isAccessFieldVisible(field) || field.name.endsWith("[]")) return;
+    const rawName = field.name.endsWith("[]") ? field.name.slice(0, -2) : field.name;
+    if (typeof record[rawName] === "undefined") return;
+    field.value = record[rawName];
   });
 
   // Retrocompatibilidade: detecta se tinha campos
@@ -1045,6 +1127,21 @@ function loadAccessRecord(record) {
   updateAccessConditionals();
   showAccessFormView();
   window.scrollTo({ top: 0, behavior: "smooth" });
+
+  // Apply checklist button states (Magma/Cylance/CRM)
+  const applyCheck = (btnId, fieldName, recordVal) => {
+    const btn = document.querySelector(btnId);
+    const val = recordVal === "Sim";
+    if (btn) {
+      btn.setAttribute("aria-pressed", val ? "true" : "false");
+      btn.textContent = val ? "☑ Verificado" : "☐ Verificado";
+    }
+    if (accessForm.elements[fieldName]) accessForm.elements[fieldName].value = val ? "Sim" : "Não";
+  };
+
+  applyCheck("#magmaChecked", "magmaChecked", record.magmaChecked);
+  applyCheck("#cylanceChecked", "cylanceChecked", record.cylanceChecked);
+  applyCheck("#crmChecked", "crmChecked", record.crmChecked);
 }
 
 function saveAccessRecord() {
@@ -1098,7 +1195,13 @@ function situationBadgeHtml(situation) {
 
 function renderAccessCard(record) {
   const displayEmail = record.newEmail || record.officeEmail || "não informado";
+  const aliasSummary = record.aliasReceiver
+    ? Array.isArray(record.aliasReceiver)
+      ? record.aliasReceiver.filter(Boolean).join(", ")
+      : record.aliasReceiver
+    : "—";
   const usageSummary = `Roteamento: ${escapeHtml(record.routingEnabled || "Não")} | Ramal: ${escapeHtml(record.usesMicrosip || "Não")} | SAP: ${escapeHtml(record.usesSapAccess || "Não")} | Responder: ${escapeHtml(record.zapEnabled || "Não")}`;
+  const securitySummary = `Magma: ${escapeHtml(record.magmaStatus || "Não se aplica")} (${escapeHtml(record.magmaChecked || "Não")}) | Cylance: ${escapeHtml(record.cylanceStatus || "Não se aplica")} (${escapeHtml(record.cylanceChecked || "Não")}) | CRM verificado: ${escapeHtml(record.crmChecked || "Não")}`;
   
   const tags = accessStatusFields
     .map(([label, field]) => {
@@ -1121,7 +1224,9 @@ function renderAccessCard(record) {
       ${situationBadgeHtml(record.situation)}
       <span>Setor: ${escapeHtml(record.sector || "não informado")}</span>
       <span>E-mail: ${escapeHtml(displayEmail)}</span>
+      <span>Aliases: ${escapeHtml(aliasSummary)}</span>
       <span>${escapeHtml(usageSummary)}</span>
+      <span>${escapeHtml(securitySummary)}</span>
       <span>Ramal: ${escapeHtml(record.microsipExtension || "—")} | SAP: ${escapeHtml(record.sapCode || "—")}</span>
       <div class="access-tags">${tags}</div>
       <div class="history-actions">
@@ -1502,7 +1607,23 @@ document.querySelector("#zapEnabledDes")?.addEventListener("change", updateAcces
 
 document.addEventListener("click", (e) => {
   const button = e.target.closest(".field-password-toggle");
-  if (button) togglePasswordField(button);
+  if (button) { togglePasswordField(button); return; }
+
+  // Delegated handler: aliases add/remove and checklist toggles
+  const addAliasBtn = e.target.closest("#addAliasButton");
+  if (addAliasBtn) { e.preventDefault(); addAliasField(); return; }
+
+  const aliasRemove = e.target.closest(".alias-remove");
+  if (aliasRemove) { e.preventDefault(); removeAliasField(aliasRemove); return; }
+
+  const checkBtn = e.target.closest(".check-button");
+  if (checkBtn) {
+    e.preventDefault();
+    const id = checkBtn.id || "";
+    const fieldName = id === "magmaChecked" ? "magmaChecked" : id === "cylanceChecked" ? "cylanceChecked" : id === "crmChecked" ? "crmChecked" : null;
+    toggleChecklist(checkBtn, fieldName);
+    return;
+  }
 });
 situationSelect.addEventListener("change", () => applyAccessSituation(situationSelect.value));
 
@@ -1546,6 +1667,14 @@ document.querySelector("#openAuthCodeModal").addEventListener("click",    openAu
 document.querySelector("#closeAuthCodeModal").addEventListener("click",   closeAuthCodeModal);
 document.querySelector("#generateAuthCode").addEventListener("click",     generateInternalAuthCode);
 document.querySelector("#applyAuthCode").addEventListener("click",        applyAuthCode);
+document.querySelector("#addAliasButton")?.addEventListener("click",      addAliasField);
+document.querySelector("#aliasInputs")?.addEventListener("click", (e) => {
+  const btn = e.target.closest(".alias-remove");
+  if (btn) removeAliasField(btn);
+});
+document.querySelector("#magmaChecked")?.addEventListener("click", (e) => { e.preventDefault(); toggleChecklist(e.currentTarget, 'magmaChecked'); });
+document.querySelector("#cylanceChecked")?.addEventListener("click", (e) => { e.preventDefault(); toggleChecklist(e.currentTarget, 'cylanceChecked'); });
+document.querySelector("#crmChecked")?.addEventListener("click", (e) => { e.preventDefault(); toggleChecklist(e.currentTarget, 'crmChecked'); });
 document.querySelector("#openRenameUser")?.addEventListener("click", (e) => { e.preventDefault(); openRenameUserModal(); });
 document.querySelector("#closeRenameUserModal")?.addEventListener("click",   closeRenameUserModal);
 document.querySelector("#applyRenameUser")?.addEventListener("click",       applyRenameUser);

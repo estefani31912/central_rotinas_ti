@@ -1140,8 +1140,40 @@ button:disabled {
   flex-wrap: wrap;
 }
 
+.alias-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.alias-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.alias-row input {
+  flex: 1;
+}
+
 .field-password-toggle {
   font-size: 13px;
+}
+
+.check-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.check-button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--green) 8%, transparent);
+  border-color: var(--green);
 }
 
 .small-modal {
