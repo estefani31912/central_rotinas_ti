@@ -360,9 +360,10 @@
                 <input type="hidden" name="id" id="accessId">
 
                 <!-- Linha principal — sempre visível -->
-                <div class="grid three">
+                <div class="grid four">
                   <label>Colaborador / Usuário<input name="employee" autocomplete="off" placeholder="Nome do colaborador"></label>
                   <label>Setor<input name="sector" autocomplete="off" placeholder="Ex: Comercial"></label>
+                  <label>Unidade<select name="unit"><option value="">Selecionar</option><option>Administrativo</option><option>Matriz</option><option>Filial</option><option>Gráfica</option></select></label>
                   <label>Situação
                     <select name="situation" id="situationSelect">
                       <option value="">Selecionar</option>
@@ -385,9 +386,11 @@
 
                   <section class="access-block"><h3>Active Directory (AD)</h3><div class="grid two">
                     <label>Nome definido<input name="adName" autocomplete="off"></label>
+                    <label>Usuário (login)<input name="adUsername" autocomplete="off" placeholder="usuario.nome"></label>
                     <label>Status AD<select name="adStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
                     <label>Habilitar usuário<select name="adEnabled"><option>Sim</option><option>Não</option><option>Não se aplica</option></select></label>
                     <label>Setor no AD<input name="adSector" autocomplete="off"></label>
+                    <label>Observações<textarea name="adObservations" rows="2" placeholder="Observações sobre Active Directory..."></textarea></label>
                   </div></section>
 
                   <section class="access-block"><h3>E-mail</h3><div class="grid two">
@@ -414,6 +417,7 @@
                   <section class="access-block"><h3>Office</h3><div class="grid two">
                     <label>E-mail da licença<input name="officeEmail" autocomplete="off"></label>
                     <label>Status Office<select name="officeStatus"><option>Ativo</option><option>Pendente</option><option>Removido</option><option>Não se aplica</option></select></label>
+                    <label>Observações<textarea name="officeObservations" rows="2" placeholder="Observações sobre Pacotte Office..."></textarea></label>
                   </div></section>
 
                   <section class="access-block"><h3>Magma / Cylance</h3><div class="grid two">
@@ -457,10 +461,11 @@
 
                 <!-- Seções para DESLIGADO (campos no passado) -->
                 <div class="access-sections" id="accessSectionsDesligado" hidden>
-
                   <section class="access-block access-block-desligado"><h3>Active Directory (AD)</h3><div class="grid two">
                     <label>Nome no AD<input name="adName" autocomplete="off" disabled></label>
+                    <label>Usuário (login)<input name="adUsername" autocomplete="off" disabled></label>
                     <label>Status AD<select name="adStatus" disabled><option>Removido</option><option>Ativo</option><option>Não se aplica</option></select></label>
+                    <label>Unidade<select name="unit" disabled><option value="">Selecionar</option><option>Administrativo</option><option>Matriz</option><option>Filial</option><option>Gráfica</option></select></label>
                     <label>Usuário usava pastas de rede?<select name="hadNetworkFolders"><option value="">Selecionar</option><option>Sim</option><option>Não</option></select></label>
                     <label>Pastas que possuía<input name="networkFolders" autocomplete="off"></label>
                   </div></section>

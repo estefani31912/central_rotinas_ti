@@ -1194,15 +1194,6 @@ function situationBadgeHtml(situation) {
 }
 
 function renderAccessCard(record) {
-  const displayEmail = record.newEmail || record.officeEmail || "não informado";
-  const aliasSummary = record.aliasReceiver
-    ? Array.isArray(record.aliasReceiver)
-      ? record.aliasReceiver.filter(Boolean).join(", ")
-      : record.aliasReceiver
-    : "—";
-  const usageSummary = `Roteamento: ${escapeHtml(record.routingEnabled || "Não")} | Ramal: ${escapeHtml(record.usesMicrosip || "Não")} | SAP: ${escapeHtml(record.usesSapAccess || "Não")} | Responder: ${escapeHtml(record.zapEnabled || "Não")}`;
-  const securitySummary = `Magma: ${escapeHtml(record.magmaStatus || "Não se aplica")} (${escapeHtml(record.magmaChecked || "Não")}) | Cylance: ${escapeHtml(record.cylanceStatus || "Não se aplica")} (${escapeHtml(record.cylanceChecked || "Não")}) | CRM verificado: ${escapeHtml(record.crmChecked || "Não")}`;
-  
   const tags = accessStatusFields
     .map(([label, field]) => {
       const val = record[field] || "N/A";
@@ -1222,12 +1213,6 @@ function renderAccessCard(record) {
     <article class="history-card">
       <strong>${escapeHtml(record.employee || "Usuário não informado")}</strong>
       ${situationBadgeHtml(record.situation)}
-      <span>Setor: ${escapeHtml(record.sector || "não informado")}</span>
-      <span>E-mail: ${escapeHtml(displayEmail)}</span>
-      <span>Aliases: ${escapeHtml(aliasSummary)}</span>
-      <span>${escapeHtml(usageSummary)}</span>
-      <span>${escapeHtml(securitySummary)}</span>
-      <span>Ramal: ${escapeHtml(record.microsipExtension || "—")} | SAP: ${escapeHtml(record.sapCode || "—")}</span>
       <div class="access-tags">${tags}</div>
       <div class="history-actions">
         <button class="small-button"        type="button" data-edit-access="${escapeHtml(record.id)}">Abrir</button>
@@ -1657,24 +1642,16 @@ document.querySelector("#newFormattingFromList").addEventListener("click", start
 document.querySelector("#backToFormattingList").addEventListener("click", showFormattingList);
 document.querySelector("#clearForm").addEventListener("click",            resetForm);
 document.querySelector("#clearAccessForm").addEventListener("click",      resetAccessForm);
-document.querySelector("#openPasswordReset").addEventListener("click",    openPasswordResetModal);
-document.querySelector("#closePasswordReset").addEventListener("click",   closePasswordResetModal);
-document.querySelector("#applyPasswordReset").addEventListener("click",   applyPasswordReset);
+document.querySelector("#openPasswordReset")?.addEventListener("click", openPasswordResetModal);
+document.querySelector("#closePasswordReset")?.addEventListener("click", closePasswordResetModal);
+document.querySelector("#applyPasswordReset")?.addEventListener("click", applyPasswordReset);
 document.querySelector("#openSapPasswordReset")?.addEventListener("click", openSapPasswordResetModal);
 document.querySelector("#closeSapPasswordReset")?.addEventListener("click", closeSapPasswordResetModal);
 document.querySelector("#applySapPasswordReset")?.addEventListener("click", applySapPasswordReset);
-document.querySelector("#openAuthCodeModal").addEventListener("click",    openAuthCodeModal);
+document.querySelector("#openAuthCodeModal")?.addEventListener("click", openAuthCodeModal);
 document.querySelector("#closeAuthCodeModal").addEventListener("click",   closeAuthCodeModal);
 document.querySelector("#generateAuthCode").addEventListener("click",     generateInternalAuthCode);
 document.querySelector("#applyAuthCode").addEventListener("click",        applyAuthCode);
-document.querySelector("#addAliasButton")?.addEventListener("click",      addAliasField);
-document.querySelector("#aliasInputs")?.addEventListener("click", (e) => {
-  const btn = e.target.closest(".alias-remove");
-  if (btn) removeAliasField(btn);
-});
-document.querySelector("#magmaChecked")?.addEventListener("click", (e) => { e.preventDefault(); toggleChecklist(e.currentTarget, 'magmaChecked'); });
-document.querySelector("#cylanceChecked")?.addEventListener("click", (e) => { e.preventDefault(); toggleChecklist(e.currentTarget, 'cylanceChecked'); });
-document.querySelector("#crmChecked")?.addEventListener("click", (e) => { e.preventDefault(); toggleChecklist(e.currentTarget, 'crmChecked'); });
 document.querySelector("#openRenameUser")?.addEventListener("click", (e) => { e.preventDefault(); openRenameUserModal(); });
 document.querySelector("#closeRenameUserModal")?.addEventListener("click",   closeRenameUserModal);
 document.querySelector("#applyRenameUser")?.addEventListener("click",       applyRenameUser);

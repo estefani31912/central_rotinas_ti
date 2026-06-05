@@ -337,6 +337,10 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 label {
   display: grid;
   gap: 8px;
@@ -1174,6 +1178,55 @@ button:disabled {
 .check-button[aria-pressed="true"] {
   background: color-mix(in srgb, var(--green) 8%, transparent);
   border-color: var(--green);
+}
+
+/* Front-end improvements: buttons, alias rows, cards and responsive tweaks */
+.access-block h3 {
+  font-size: 1.05rem;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.access-block h3 .small-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.check-button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 90%, transparent), var(--bg));
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.check-button:hover { transform: translateY(-1px); }
+.check-button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  border-color: color-mix(in srgb, var(--green) 55%, var(--line));
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--green) 6%, transparent);
+}
+
+.alias-list { margin-top: 8px; }
+.alias-row { display:flex; gap:8px; align-items:center; padding:6px; border:1px solid var(--line); border-radius:8px; background: color-mix(in srgb, var(--bg) 98%, transparent); }
+.alias-row input { border: none; padding:6px 8px; background: transparent; outline: none; }
+.alias-remove { background: transparent; border: none; color: var(--red); font-weight: 600; cursor: pointer; padding:6px; border-radius:6px; }
+.alias-remove:hover { background: color-mix(in srgb, var(--red) 6%, transparent); }
+
+.access-tag { margin:6px 6px 0 0; }
+.history-card { transition: box-shadow .12s ease, transform .12s ease; }
+.history-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px color-mix(in srgb, var(--line) 12%, transparent); }
+
+textarea { resize: vertical; min-height:40px; }
+
+@media (max-width: 900px) {
+  .grid.two { grid-template-columns: 1fr; }
+  .grid.three { grid-template-columns: 1fr; }
+  .grid.four { grid-template-columns: 1fr; }
+  .inline-actions { justify-content: flex-start; }
+  .access-block h3 { font-size: 1rem; }
 }
 
 .small-modal {
